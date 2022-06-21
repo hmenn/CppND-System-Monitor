@@ -1,9 +1,18 @@
 #include <dirent.h>
 #include <unistd.h>
-#include <experimental/filesystem>
 #include <sstream>
 #include <string>
 #include <vector>
+
+// requires a higher version of g++
+#if __has_include(<filesystem>)
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
+// requires target_link_libraries(... stdc++fs)
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#endif
 
 #include "linux_parser.h"
 
@@ -94,13 +103,13 @@ float LinuxParser::MemoryUtilization() {
 // DONE: Read and return the system uptime
 long LinuxParser::UpTime() {
   string line;
-  long totalUptime_s;
-  long totalIdle_s;
+  long totalUptimeSeconds;
+  long totalIdleSeconds;
   std::ifstream filestream(kProcDirectory + kUptimeFilename);
   if (filestream.is_open()) {
-    filestream >> totalUptime_s >> totalIdle_s;
+    filestream >> totalUptimeSeconds >> totalIdleSeconds;
   }
-  return totalUptime_s;
+  return totalUptimeSeconds;
 }
 
 // DONE: Read and return the number of jiffies for the system
@@ -205,8 +214,13 @@ string LinuxParser::Command(int pid) {
 
 // DONE: Read and return the memory used by a process
 string LinuxParser::Ram(int pid) {
+  // I used VmRSS key instead of VmSize, because VmSize gives sum of all virtual
+  // memory
+  // Please check corresponding man page for detailed information:
+  // - man proc |grep -C 5 VmSize
+  // - man proc |grep -C 5 VmRSS
   return ExtractDataFromFile<string, string>(
-      kProcDirectory + std::to_string(pid) + kStatusFilename, "VmSize:");
+      kProcDirectory + std::to_string(pid) + kStatusFilename, "VmRSS:");
 }
 
 // DONE: Read and return the user ID associated with a process
@@ -253,5 +267,5 @@ long LinuxParser::UpTime(int pid) {
   };
 
   // TODO: Its' clock tics. convert this to seconds
-  return std::stoi(uptimeStr);
+  return std::stoi(uptimeStr) / sysconf(_SC_CLK_TCK);
 }

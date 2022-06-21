@@ -9,10 +9,7 @@
 #include "processor.h"
 #include "system.h"
 
-using std::set;
-using std::size_t;
-using std::string;
-using std::vector;
+using namespace std;
 /*You need to complete the mentioned TODOs in order to satisfy the rubric
 criteria "The student will be able to extract and display basic data about the
 system."
@@ -27,7 +24,7 @@ Processor& System::Cpu() { return cpu_; }
 vector<Process>& System::Processes() {
   processes_.clear();
   for (const auto& pid : LinuxParser::Pids()) {
-    processes_.push_back(Process(pid));
+    processes_.emplace_back(pid);
   }
   std::sort(processes_.begin(), processes_.end());
   return processes_;

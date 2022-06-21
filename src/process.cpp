@@ -23,7 +23,14 @@ float Process::CpuUtilization() const {
 }
 
 // DONE: Return the command that generated this process
-string Process::Command() { return LinuxParser::Command(this->pid); }
+string Process::Command() {
+  const int MAX_CMD_LEN = 40;
+  auto cmd = LinuxParser::Command(this->pid);
+  if (cmd.size() > MAX_CMD_LEN) {
+    cmd = cmd.substr(0, MAX_CMD_LEN).append("...");
+  }
+  return cmd;
+}
 
 // DONE: Return this process's memory utilization
 string Process::Ram() {
@@ -40,5 +47,5 @@ long int Process::UpTime() { return LinuxParser::UpTime(this->pid); }
 
 // DONE: Overload the "less than" comparison operator for Process objects
 bool Process::operator<(Process const& a) const {
-  return this->CpuUtilization() > a.CpuUtilization();
+  return this->CpuUtilization() < a.CpuUtilization();
 }
